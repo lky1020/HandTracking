@@ -1,6 +1,7 @@
 import cv2
 import mediapipe as mp
 import time
+import math
 
 
 class handDetector():
@@ -35,6 +36,10 @@ class handDetector():
 
     def findPosition(self, img, handNo=0, draw=True):
 
+        xList = []
+        yList = []
+        bbox = []
+
         self.lmList = []
 
         if self.results.multi_hand_landmarks:
@@ -45,12 +50,23 @@ class handDetector():
                 h, w, c = img.shape
                 cx, cy = int(lm.x * w), int(lm.y * h)
 
+                xList.append(cx)
+                yList.append(cy)
+
                 self.lmList.append([id, cx, cy])
 
                 if draw:
                     cv2.circle(img, (cx, cy), 5, (255, 0, 255), cv2.FILLED)
 
-        return self.lmList
+            # Bounding Box
+            xMin, xMax = min(xList), max(xList)
+            yMin, yMax = min(yList), max(yList)
+            bbox = xMin, yMin, xMax, yMax
+
+            if draw:
+                cv2.rectangle(img, (bbox[0] - 20, bbox[1] - 20), (bbox[2] + 20, bbox[3] + 20), (0, 255, 0), 2)
+
+        return self.lmList, bbox
 
     def fingersUp(self):
         fingers = []
@@ -80,6 +96,22 @@ class handDetector():
                 fingers.append(0)
 
         return fingers
+
+    def findDistance(self, p1, p2, img, draw=True):
+        x1, y1 = self.lmList[p1][1], self.lmList[p1][2]
+        x2, y2 = self.lmList[p2][1], self.lmList[p2][2]
+        cx, cy = (x1 + x2) // 2, (y1 + y2) // 2
+
+        if draw:
+            cv2.circle(img, (x1, y1), 15, (0, 255, 0), cv2.FILLED)
+            cv2.circle(img, (x2, y2), 15, (0, 255, 0), cv2.FILLED)
+            cv2.line(img, (x1, y1), (x2, y2), (0, 255, 0), 3)
+            cv2.circle(img, (cx, cy), 10, (0, 0, 255), cv2.FILLED)
+
+        length = math.hypot(x2 - x1, y2 - y1)
+
+        return length, img, [x1, y1, x2, y2, cx, cy]
+
 
 def main():
     cap = cv2.VideoCapture(0)
