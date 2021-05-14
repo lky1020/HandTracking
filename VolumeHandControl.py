@@ -41,7 +41,8 @@ while True:
         # Filter based on size
         area = (bbox[2] - bbox[0]) * (bbox[3] - bbox[1]) // 100
 
-        if 250 < area < 1000:
+        print(area)
+        if 150 < area < 1000:
 
             # Find Distance between index and Thumb
             length, img, lineInfo = detector.findDistance(4, 8, img)
@@ -60,7 +61,7 @@ while True:
             fingers = detector.fingersUp()
 
             # if pinky is down set volume
-            if not fingers[3]:
+            if not fingers[2] and not fingers[3] and not fingers[4]:
                 volume.SetMasterVolumeLevelScalar(volPer / 100, None)
                 cv2.circle(img, (lineInfo[4], lineInfo[5]), 10, (0, 255, 0), cv2.FILLED)
                 colorVol = (0, 255, 0)

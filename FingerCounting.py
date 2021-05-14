@@ -126,7 +126,7 @@ key = ''
 while True:
     success, img = cap.read()
     img = detector.findHands(img)
-    lmList = detector.findPosition(img, draw=False)
+    lmList, bbox = detector.findPosition(img, draw=False)
 
     if ky.is_pressed('f'):
         key = 'f'
