@@ -70,7 +70,7 @@ while True:
             cv2.line(img, (x1, y1), (x2, y2), paintColor, 3)
 
         # If Drawing Mode - Index Finger is up
-        if fingers[1] and fingers[2] == False:
+        if fingers[1] and not fingers[2]:
             cv2.circle(img, (x1, y1), 15, paintColor, cv2.FILLED)
             print('Drawing Mode')
 
@@ -82,10 +82,13 @@ while True:
                 cv2.line(imgCanvas, (xp, yp), (x1, y1), paintColor, eraserThickness)
 
             else:
-               cv2.line(img, (xp, yp), (x1, y1), paintColor, brushThickness)
-               cv2.line(imgCanvas, (xp, yp), (x1, y1), paintColor, brushThickness)
+                cv2.line(img, (xp, yp), (x1, y1), paintColor, brushThickness)
+                cv2.line(imgCanvas, (xp, yp), (x1, y1), paintColor, brushThickness)
 
             xp, yp = x1, y1
+
+        if not fingers[1]:
+            xp, yp = 0, 0
 
     imgGray = cv2.cvtColor(imgCanvas, cv2.COLOR_BGR2GRAY)
     _, imgInv = cv2.threshold(imgGray, 50, 255, cv2.THRESH_BINARY_INV)
