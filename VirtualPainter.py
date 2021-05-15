@@ -61,7 +61,7 @@ while True:
                 elif 800 < x1 < 950:
                     header = overlayList[2]
                     paintColor = (0, 255, 0)
-                if 1050 < x1 < 1200:
+                elif 1050 < x1 < 1200:
                     header = overlayList[3]
                     paintColor = (0, 0, 0)
 
@@ -86,6 +86,10 @@ while True:
                 cv2.line(imgCanvas, (xp, yp), (x1, y1), paintColor, brushThickness)
 
             xp, yp = x1, y1
+
+        # Eraser All
+        if fingers[1] and fingers[2] and fingers[3] and fingers[4]:
+            cv2.rectangle(imgCanvas, (0, 0), (1280, 720), (0, 0, 0), cv2.FILLED)
 
         if not fingers[1]:
             xp, yp = 0, 0
