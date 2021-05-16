@@ -24,14 +24,14 @@ def FingerCounting():
 
     # thumb
     if lmList[5][1] > lmList[17][1]:
-        #  Right
+        # Left
         # [index finger][height]
         if lmList[tipIds[0]][1] > lmList[tipIds[0] - 1][2] + 100:
             fingers.append(1)
         else:
             fingers.append(0)
     else:
-        # Left
+        # Right
         # [index finger][height]
         if lmList[tipIds[0]][1] < lmList[tipIds[0] - 1][2]:
             fingers.append(1)
@@ -125,6 +125,8 @@ key = ''
 
 while True:
     success, img = cap.read()
+    img = cv2.flip(img, 1)
+
     img = detector.findHands(img)
     lmList, bbox = detector.findPosition(img, draw=False)
 

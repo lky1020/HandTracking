@@ -73,14 +73,14 @@ class handDetector():
 
         # thumb
         if self.lmList[5][1] > self.lmList[17][1]:
-            #  Right
+            #  Left
             # [index finger][height]
             if self.lmList[self.tipIds[0]][1] > self.lmList[self.tipIds[0] - 1][2] + 100:
                 fingers.append(1)
             else:
                 fingers.append(0)
         else:
-            # Left
+            # Right
             # [index finger][height]
             if self.lmList[self.tipIds[0]][1] < self.lmList[self.tipIds[0] - 1][2]:
                 fingers.append(1)
@@ -125,6 +125,7 @@ def main():
 
     while True:
         success, img = cap.read()
+        img = cv2.flip(img, 1)
 
         img = detector.findHands(img)
         lmList = detector.findPosition(img, draw=False)

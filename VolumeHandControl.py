@@ -31,6 +31,7 @@ colorVol = (0, 0, 0)
 
 while True:
     success, img = cap.read()
+    img = cv2.flip(img, 1)
 
     # Find Hand
     img = detector.findHands(img)
