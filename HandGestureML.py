@@ -5,6 +5,7 @@ from os import path
 import numpy as np
 import pandas as pd
 import pickle
+from sklearn.metrics import accuracy_score
 
 
 def exportCsv(result):
@@ -42,35 +43,34 @@ def exportCsv(result):
 
 
 def handGestureDetection(result):
+    # Export Coordinates
+    try:
+        # Extract Hand Landmarks
+        hands_coords = result.multi_hand_landmarks[0].landmark
+        hands_row = list(np.array([[landmark.x, landmark.y, landmark.z] for landmark in hands_coords]).flatten())
+
+        row = hands_row
+
+        # Make Detections
+        x = pd.DataFrame([row])
+        hand_gesture_class = model.predict(x)[0]
+        hand_gesture_prob = model.predict_proba(x)[0]
+        print(hand_gesture_class, hand_gesture_prob)
+
+        # Grab Hand end coords
+        hand_gesture_coords = tuple(np.multiply(
+            np.array(
+                (result.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.WRIST].x,
+                 result.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.WRIST].y)
+            ), [640, 480]
+        ).astype(int))
 
 
-        # Export Coordinates
-        try:
-            # Extract Hand Landmarks
-            hands_coords = result.multi_hand_landmarks[0].landmark
-            hands_row = list(np.array([[landmark.x, landmark.y, landmark.z] for landmark in hands_coords]).flatten())
+    except Exception as e:
+        print(e)
+        pass
 
-            row = hands_row
-
-            # Make Detections
-            x = pd.DataFrame([row])
-            hand_gesture_class = model.predict(x)[0]
-            hand_gesture_prob = model.predict_proba(x)[0]
-            print(hand_gesture_class, hand_gesture_prob)
-
-            # Grab Hand end coords
-            hand_gesture_coords = tuple(np.multiply(
-                np.array(
-                    (result.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.WRIST].x, result.multi_hand_landmarks[0].landmark[mp_hands.HandLandmark.WRIST].y)
-                ), [640, 480]
-            ).astype(int))
-
-
-        except Exception as e:
-            print(e)
-            pass
-
-        return hand_gesture_class, hand_gesture_coords
+    return hand_gesture_class, hand_gesture_coords
 
 
 mp_drawing = mp.solutions.drawing_utils
@@ -114,7 +114,7 @@ while cap.isOpened():
                 x = pd.DataFrame([row])
                 hand_gesture_class = model.predict(x)[0]
                 hand_gesture_prob = model.predict_proba(x)[0]
-                print(hand_gesture_class, hand_gesture_prob)
+                # print(hand_gesture_class, hand_gesture_prob)
 
                 # Grab Hand end coords
                 hand_gesture_coords = tuple(np.multiply(
@@ -124,13 +124,23 @@ while cap.isOpened():
                     ), [640, 480]
                 ).astype(int))
 
-                # cv2.rectangle(img, (hand_gesture_coords[0] - 50, hand_gesture_coords[1] + 40),
-                #               ((hand_gesture_coords[0] + len(hand_gesture_class) * 20) - 50, hand_gesture_coords[1]), (245, 117, 16), -1)
+                prob = float(str(round(hand_gesture_prob[np.argmax(hand_gesture_prob)], 2)))
+                print(prob)
 
-                cv2.putText(img, hand_gesture_class, (hand_gesture_coords[0] - 50, hand_gesture_coords[1] + 30)
-                            , cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+                if prob > 0.5:
+                    classProb = hand_gesture_class + " " + str(prob)
+                    # Show Class and Probability Detected
+                    cv2.putText(img, classProb, (hand_gesture_coords[0] - 75, hand_gesture_coords[1] + 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
 
-            except:
+                else:
+                    # Show Unknown Class
+                    cv2.putText(img, "Unknown", (hand_gesture_coords[0] - 50, hand_gesture_coords[1] + 30),
+                                cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
+
+
+            except Exception as e:
+                print(e)
                 pass
 
     # Show Image
