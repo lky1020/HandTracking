@@ -7,7 +7,10 @@ from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
 from sklearn.metrics import accuracy_score
 import pickle
 
-df = pd.read_csv('coords.csv')
+exportCsvPath = "HandGestureDataSet/" + "number.csv"
+exportPicklePath = "HandGestureDataSet/" + "number.pkl"
+
+df = pd.read_csv(exportCsvPath)
 
 # Features
 x = df.drop('class', axis=1)
@@ -38,5 +41,5 @@ for algo, model in fit_models.items():
     print(algo, accuracy_score(y_test, yhat))
 
 # Create Pickle File
-with open('body_language.pkl', 'wb') as f:
+with open(exportPicklePath, 'wb') as f:
     pickle.dump(fit_models['rf'], f)

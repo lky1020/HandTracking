@@ -8,7 +8,9 @@ import pickle
 from sklearn.metrics import accuracy_score
 
 
-def exportCsv(result):
+def exportCsv(result, csvName):
+    exportCsvPath = "HandGestureDataSet/" + csvName
+
     num_coords = len(result.multi_hand_landmarks[0].landmark)
 
     landmarks = ['class']
@@ -16,12 +18,12 @@ def exportCsv(result):
     for val in range(1, num_coords + 1):
         landmarks += ['x{}'.format(val), 'y{}'.format(val), 'z{}'.format(val)]
 
-    if not path.exists('coords.csv'):
-        with open('coords.csv', mode='w', newline='') as f:
+    if not path.exists(exportCsvPath):
+        with open(exportCsvPath, mode='w', newline='') as f:
             csv_writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
             csv_writer.writerow(landmarks)
 
-    class_name = "Hello"
+    class_name = "Five"
 
     # Export Coordinates
     try:
@@ -34,9 +36,9 @@ def exportCsv(result):
 
         print(row)
 
-        # with open('coords.csv', mode='a', newline='') as f:
-        #     csv_writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        #     csv_writer.writerow(row)
+        with open(exportCsvPath, mode='a', newline='') as f:
+            csv_writer = csv.writer(f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+            csv_writer.writerow(row)
 
     except:
         pass
@@ -80,7 +82,9 @@ cap = cv2.VideoCapture(0)
 hands = mp_hands.Hands(False, max_num_hands=2, min_detection_confidence=0.85, min_tracking_confidence=0.5)
 hand_coords = 0
 
-with open('body_language.pkl', 'rb') as f:
+exportPicklePath = "HandGestureDataSet/" + "number.pkl"
+
+with open(exportPicklePath, 'rb') as f:
     model = pickle.load(f)
 
 while cap.isOpened():
@@ -99,14 +103,15 @@ while cap.isOpened():
     # Draw Hand Landmarks
     if results.multi_hand_landmarks:
 
+        # exportCsv(results, "number.csv")
+
         for handLms in results.multi_hand_landmarks:
             mp_drawing.draw_landmarks(img, handLms, mp_hands.HAND_CONNECTIONS)
 
             try:
                 # Extract Hand Landmarks
                 hands_coords = handLms.landmark
-                hands_row = list(
-                    np.array([[landmark.x, landmark.y, landmark.z] for landmark in hands_coords]).flatten())
+                hands_row = list(np.array([[landmark.x, landmark.y, landmark.z] for landmark in hands_coords]).flatten())
 
                 row = hands_row
 
@@ -127,7 +132,7 @@ while cap.isOpened():
                 prob = float(str(round(hand_gesture_prob[np.argmax(hand_gesture_prob)], 2)))
                 print(prob)
 
-                if prob > 0.5:
+                if prob > 0.8:
                     classProb = hand_gesture_class + " " + str(prob)
                     # Show Class and Probability Detected
                     cv2.putText(img, classProb, (hand_gesture_coords[0] - 75, hand_gesture_coords[1] + 30),
@@ -137,7 +142,6 @@ while cap.isOpened():
                     # Show Unknown Class
                     cv2.putText(img, "Unknown", (hand_gesture_coords[0] - 50, hand_gesture_coords[1] + 30),
                                 cv2.FONT_HERSHEY_SIMPLEX, 1, (255, 255, 255), 2, cv2.LINE_AA)
-
 
             except Exception as e:
                 print(e)
