@@ -6,9 +6,14 @@ import csv
 import time
 import numpy as np
 from os import path
+import os
+from HandGestureClassifier import HandGestureClassifier
+import tensorflow as tf
+import pandas as pd
 
 
 def main():
+
     # FPS Preparation
     prevTime = 0
     currentTime = 0
@@ -18,10 +23,20 @@ def main():
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
     cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-    # Model Preparation
+    # Mediapipe Preparation
     mp_drawing = mp.solutions.drawing_utils
     mp_hands = mp.solutions.hands
     hands = mp_hands.Hands(False, max_num_hands=1, min_detection_confidence=0.85, min_tracking_confidence=0.5)
+
+    # Classifier Load
+    hand_gesture_classifier = HandGestureClassifier()
+
+    # Read Label Available
+    with open('HandGestureDataSet/model/hand_number_label.csv', encoding='utf-8-sig') as f:
+        gesture_classifier_labels = csv.reader(f)
+        gesture_classifier_labels = [
+            row[0] for row in gesture_classifier_labels
+        ]
 
     while cap.isOpened():
         success, img = cap.read()
@@ -41,7 +56,7 @@ def main():
         # Draw Hand Landmarks
         if results.multi_hand_landmarks:
 
-            for hand_landmarks in results.multi_hand_landmarks:
+            for hand_landmarks, handedness in zip(results.multi_hand_landmarks, results.multi_handedness):
                 # Calculate Bounding Box
                 bbox = calc_bounding_rect(img, hand_landmarks)
 
@@ -52,13 +67,17 @@ def main():
                 pre_processed_landmark_list = pre_process_landmark(landmark_list)
 
                 # Write to the dataset file
-                print(pre_processed_landmark_list)
+                # print(pre_processed_landmark_list)
                 className = "4"
                 logging_csv(className, False, pre_processed_landmark_list)
+
+                # Hand Gesture Classification
+                hand_gesture_id, val_acc = hand_gesture_classifier(pre_processed_landmark_list)
 
                 # Drawing
                 mp_drawing.draw_landmarks(img, hand_landmarks, mp_hands.HAND_CONNECTIONS)
                 img = draw_bounding_rect(True, img, bbox)
+                img = draw_gesture_text(img, bbox, handedness, gesture_classifier_labels[hand_gesture_id], val_acc)
 
         # Calculate Fps
         currentTime = time.time()
@@ -152,6 +171,19 @@ def logging_csv(className, mode, landmark_list):
 def draw_bounding_rect(draw, img, bbox):
     if draw:
         cv2.rectangle(img, (bbox[0] - 20, bbox[1] - 20), (bbox[2] + 20, bbox[3] + 20), (0, 255, 0), 2)
+
+    return img
+
+
+def draw_gesture_text(img, bbox, handedness, gesture_classifier_labels, val_acc):
+    cv2.rectangle(img, (bbox[0] - 20, bbox[1] - 20), (bbox[2] + 20, bbox[1] - 45), (0, 255, 0), -1)
+
+    info_text = handedness.classification[0].label[0:]
+
+    if gesture_classifier_labels != "":
+        info_text = info_text + ': ' + gesture_classifier_labels + '- ' + str(round(val_acc, 2))
+
+    cv2.putText(img, info_text, (bbox[0] - 15, bbox[1] - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA)
 
     return img
 
