@@ -118,7 +118,7 @@ while cap.isOpened():
                 x = pd.DataFrame([row])
                 hand_gesture_class = model.predict(x)[0]
                 hand_gesture_prob = model.predict_proba(x)[0]
-                # print(hand_gesture_class, hand_gesture_prob)
+                print(hand_gesture_class, hand_gesture_prob)
 
                 # Grab Hand end coords
                 hand_gesture_coords = tuple(np.multiply(
@@ -129,9 +129,9 @@ while cap.isOpened():
                 ).astype(int))
 
                 prob = float(str(round(hand_gesture_prob[np.argmax(hand_gesture_prob)], 2)))
-                print(prob)
+                # print(prob)
 
-                if prob > 0.8:
+                if prob > 0.5:
                     classProb = hand_gesture_class + " " + str(prob)
                     # Show Class and Probability Detected
                     cv2.putText(img, classProb, (hand_gesture_coords[0] - 75, hand_gesture_coords[1] + 30),
