@@ -13,7 +13,6 @@ import pandas as pd
 
 
 def main():
-
     # FPS Preparation
     prevTime = 0
     currentTime = 0
@@ -39,6 +38,11 @@ def main():
         ]
 
     while cap.isOpened():
+
+        key = cv2.waitKey(10)
+        if key == 27:
+            break
+
         success, img = cap.read()
         img = cv2.flip(img, 1)
 
@@ -67,9 +71,10 @@ def main():
                 pre_processed_landmark_list = pre_process_landmark(landmark_list)
 
                 # Write to the dataset file
-                # print(pre_processed_landmark_list)
-                className = "4"
-                logging_csv(className, False, pre_processed_landmark_list)
+                if key == 32:
+                    print(pre_processed_landmark_list)
+                    className = "5"
+                    logging_csv(className, True, pre_processed_landmark_list)
 
                 # Hand Gesture Classification
                 hand_gesture_id, val_acc = hand_gesture_classifier(pre_processed_landmark_list)
@@ -87,10 +92,6 @@ def main():
         cv2.putText(img, str(int(fps)), (10, 50), cv2.FONT_HERSHEY_PLAIN, 3, (255, 0, 0), 2)
 
         cv2.imshow("Img", img)
-
-        key = cv2.waitKey(10)
-        if key == 27:
-            break
 
 
 def calc_bounding_rect(image, landmarks):
@@ -181,7 +182,10 @@ def draw_gesture_text(img, bbox, handedness, gesture_classifier_labels, val_acc)
     info_text = handedness.classification[0].label[0:]
 
     if gesture_classifier_labels != "":
-        info_text = info_text + ': ' + gesture_classifier_labels + '- ' + str(round(val_acc, 2))
+        if val_acc > 0.65:
+            info_text = info_text + ': ' + gesture_classifier_labels + '- ' + str(round(val_acc, 2))
+        else:
+            info_text = info_text + ': Unknown'
 
     cv2.putText(img, info_text, (bbox[0] - 15, bbox[1] - 25), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 0), 1, cv2.LINE_AA)
 
