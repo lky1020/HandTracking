@@ -1,2 +1,2 @@
 # HandTracking
- Mediapipe
+Research for the FYP on Hand Tracking by using Mediapipe in Python.
